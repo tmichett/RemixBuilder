@@ -1,0 +1,15 @@
+I want to build a Fedora container image with the following rpms installed: python3-pyyaml, httpd, sshfs, livecd-tools, vim, python3. Inside the container, I will be running as the root user. Copy the ssh_config files to the container's root user home directory.
+
+There should be an entrypoint.sh script that will run for the container. It will run the following commands from the workspace directory echoing which command it is running as output to the screen: 
+
+cd ~/workspace/Setup
+python3 Prepare_Web_Files.py
+python3 Prepare_Fedora_Remix_Build.py
+cd /livecd-creator/FedoraRemix
+Enhanced_Remix_Build_Script.sh
+
+The container image should be capable of reading the config.yml file. It should leverage the Fedora_Version as the version of the Fedora container I want to build, so the Containerfile should accept that variable at build time. The build script should look at the config.yml file to process all variable values. The SSH_Key_Location and Fedora_Remix_Location are to be used for the run script. The SSH_Key_Location will provide the user's SSH key to the container at the ~/github_id location within the container for the root user. The Fedora_Remix_Location specifies the local directory on the disk that will be mounted into the container in the /livecd-creator directory. The run script should also mount the current working directory into the container to ~/workspace.
+
+The scripts and container should all be using Podman as I am using Fedora and RHEL to build the container images. 
+
+

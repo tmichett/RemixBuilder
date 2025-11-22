@@ -1,0 +1,7 @@
+Host github.com
+  Port 22
+  IdentityFile ~/github_id
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  CheckHostIP no
+
