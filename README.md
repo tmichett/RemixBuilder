@@ -222,6 +222,20 @@ All scripts (`build.sh`, `push.sh`, `Build_Remix.sh`) will use whatever tag is s
 - Ensure the Fedora Remix location exists and is accessible
 
 ### Build fails in container
+
+**Linux-specific `/sys` unmount errors**: If you see errors like:
+```
+Error creating Live CD : Unable to unmount filesystem at /var/tmp/imgcreate-*/install_root/sys
+```
+
+This has been **FIXED** in the latest version! See the [Fedora_Remix LINUX_BUILD_FIX.md](../Fedora_Remix/LINUX_BUILD_FIX.md) document for complete details.
+
+**Quick fix summary:**
+- Updated scripts with dynamic Python version detection
+- Added imgcreate patches for systemd compatibility
+- Automatic verification of patches before build
+
+**Other build failures:**
 - Check container logs: `journalctl -u remix-builder.service -n 100` (inside container)
 - Verify the Fedora version in `config.yml` matches the version in your Fedora Remix project's `/Setup/config.yml`
 - Ensure all required files exist in the Fedora Remix project directory
