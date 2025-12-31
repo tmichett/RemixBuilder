@@ -20,15 +20,16 @@ A containerized build environment for creating Fedora Remix ISO images. This pro
    Container_Properties:
      Fedora_Version: "43"  # Update this to match your target Fedora version
      SSH_Key_Location: "~/.ssh/github_id"  # Path to your GitHub SSH key
-     Fedora_Remix_Location: "/path/to/your/fedora-remix-project"  # Path to your Fedora Remix project
+     Fedora_Remix_Location: "/path/to/your/output/directory"  # Output directory for ISO builds
      GitHub_Registry_Owner: "your-github-username"  # Your GitHub username or organization
-     Image_Name: "ghcr.io/your-github-username/fedora-remix-builder:latest"  # Container image name with tag
+     # Image_Name is auto-generated from GitHub_Registry_Owner and Fedora_Version
+     # Format: ghcr.io/{GitHub_Registry_Owner}/fedora-remix-builder:{Fedora_Version}
    ```
 
    **Important Notes:**
    - The `Fedora_Version` should match the version in your Fedora Remix project's `/Setup/config.yml` file
-   - The `Image_Name` tag can be `latest` or a specific version like `42` (e.g., `ghcr.io/tmichett/fedora-remix-builder:42`)
-   - Update the `Image_Name` tag when building for different Fedora versions to keep images organized
+   - `Image_Name` is now **automatically generated** from `GitHub_Registry_Owner` and `Fedora_Version`
+   - Just change `Fedora_Version` to switch container versions (e.g., `"43"` → `"44"`)
 
 3. **Copy files to your Fedora Remix project** (recommended):
    - Copy `Build_Remix.sh` to the root of your Fedora Remix project directory
@@ -85,11 +86,47 @@ cd /path/to/your/fedora-remix-project
 ./Build_Remix.sh
 ```
 
+#### Kickstart Selection
+
+The build script now supports **multiple Remix variants** with an interactive menu:
+
+```bash
+# Interactive mode - shows menu of available kickstarts
+./Build_Remix.sh
+
+# Direct kickstart selection (skip menu)
+./Build_Remix.sh -k FedoraRemixCosmic
+
+# List available kickstart files
+./Build_Remix.sh -l
+
+# Show help
+./Build_Remix.sh -h
+```
+
+**Interactive Menu Example:**
+```
+╔══════════════════════════════════════════════════════╗
+║ 🚀  Fedora Remix Builder - Kickstart Selection       ║
+╠══════════════════════════════════════════════════════╣
+║  1) FedoraRemix                              [DEFAULT] ║
+║  2) FedoraRemixCosmic                                  ║
+╚══════════════════════════════════════════════════════╝
+
+Select kickstart to build (1-2) [Enter=default]:
+```
+
+- Press **Enter** to use the default (`FedoraRemix.ks`)
+- The menu automatically filters out snippet files (`*Packages.ks`, `*Repos.ks`)
+- The output ISO is named after the selected kickstart (e.g., `FedoraRemixCosmic.iso`)
+
 This script will:
-- Read configuration from `config.yml` (SSH key location, Fedora Remix location, and image name)
+- Read configuration from `config.yml` (SSH key location, output location, Fedora version, etc.)
+- Dynamically construct the container image name from `GitHub_Registry_Owner` and `Fedora_Version`
+- Prompt for kickstart selection (or accept via `-k` flag)
 - Mount your SSH key into the container at `~/github_id`
-- Mount your Fedora Remix project directory to `/livecd-creator` in the container
-- Mount the current working directory to `~/workspace` in the container
+- Mount your output directory to `/livecd-creator` in the container
+- Mount the current working directory (source) to `~/workspace` in the container
 - Start the container and automatically run the build process
 
 The container will:
@@ -108,11 +145,15 @@ The container will:
 Central configuration file used by all scripts. Contains:
 - **Fedora_Version**: The Fedora version to use as the base container image
 - **SSH_Key_Location**: Path to your GitHub SSH key (mounted into container)
-- **Fedora_Remix_Location**: Path to your local Fedora Remix project directory
+- **Fedora_Remix_Location**: Path to the output directory for ISO builds
 - **GitHub_Registry_Owner**: Your GitHub username or organization name
-- **Image_Name**: Full container image name including registry, owner, name, and tag
 
-**All scripts (`build.sh`, `push.sh`, `Build_Remix.sh`) read the container name and tag from `Image_Name` in this file.**
+**Note:** `Image_Name` is now **auto-generated** from `GitHub_Registry_Owner` and `Fedora_Version`:
+```
+ghcr.io/{GitHub_Registry_Owner}/fedora-remix-builder:{Fedora_Version}
+```
+
+**All scripts (`build.sh`, `push.sh`, `Build_Remix.sh`) dynamically construct the container name from these values.**
 
 ### Build Scripts
 
@@ -131,10 +172,14 @@ Pushes the container image to GitHub Container Registry:
 
 #### `Build_Remix.sh`
 Runs the container and builds the Fedora Remix:
-- Reads `SSH_Key_Location`, `Fedora_Remix_Location`, and `Image_Name` from `config.yml`
-- Mounts volumes for SSH key, Fedora Remix project, and workspace
+- **Interactive kickstart selection** with color-coded menu (or use `-k <name>` for automation)
+- Reads `SSH_Key_Location`, `Fedora_Remix_Location`, `Fedora_Version`, and `GitHub_Registry_Owner` from `config.yml`
+- **Dynamically constructs `Image_Name`** from `GitHub_Registry_Owner` and `Fedora_Version`
+- Mounts volumes for SSH key, output directory, and source workspace
+- Automatically detects if `sudo` is needed for loop device access on Linux
 - Runs the container with systemd support and privileged mode (required for livecd-creator)
 - The container automatically executes the build process via the entrypoint script
+- **Output ISO named after selected kickstart** (e.g., `FedoraRemixCosmic.iso`)
 
 ### Container Components
 
@@ -149,13 +194,15 @@ Defines the container image:
 
 #### `entrypoint.sh`
 Automated build script that runs inside the container:
-1. Waits for workspace directory to be available
-2. Changes to `~/workspace/Setup` directory
-3. Runs `Prepare_Web_Files.py`
-4. Runs `Prepare_Fedora_Remix_Build.py`
-5. Changes to `/livecd-creator/FedoraRemix` directory
-6. Runs `Enhanced_Remix_Build_Script.sh`
-7. Marks build as completed
+1. **Configures DNF for optimal performance** (`max_parallel_downloads=10`, `fastestmirror=True`)
+2. **Reads selected kickstart** from environment variable or fallback file
+3. Waits for workspace directory to be available
+4. Changes to `~/workspace/Setup` directory
+5. Runs `Prepare_Web_Files.py`
+6. Runs `Prepare_Fedora_Remix_Build.py`
+7. Changes to `/livecd-creator/FedoraRemix` directory
+8. Runs `Enhanced_Remix_Build_Script.sh` with the selected kickstart
+9. Marks build as completed
 
 The entrypoint runs automatically when the container starts via a systemd service.
 
@@ -183,7 +230,7 @@ When building for a new Fedora version:
 
 1. **Update `config.yml`**:
    - Change `Fedora_Version` to the new version (e.g., `"43"` → `"44"`)
-   - Update `Image_Name` tag to reflect the version (e.g., `ghcr.io/tmichett/fedora-remix-builder:44`)
+   - The `Image_Name` is **automatically updated** based on this value
 
 2. **Update your Fedora Remix project's `/Setup/config.yml`**:
    - Ensure the Fedora version matches the version in the RemixBuilder `config.yml`
@@ -201,18 +248,18 @@ When building for a new Fedora version:
 
 ### Container Image Tagging Strategy
 
-The `Image_Name` in `config.yml` can use different tags:
-- `latest`: For the most recent/current build
-- Version-specific: `42`, `43`, etc. to match Fedora versions
-- Custom tags: Any tag name you prefer
+The container image name is **automatically generated** from `config.yml`:
 
-**Example:**
-```yaml
-Image_Name: "ghcr.io/tmichett/fedora-remix-builder:43"  # For Fedora 43
-Image_Name: "ghcr.io/tmichett/fedora-remix-builder:latest"  # For latest
+```
+ghcr.io/{GitHub_Registry_Owner}/fedora-remix-builder:{Fedora_Version}
 ```
 
-All scripts (`build.sh`, `push.sh`, `Build_Remix.sh`) will use whatever tag is specified in `Image_Name`.
+**Example:** With `GitHub_Registry_Owner: "tmichett"` and `Fedora_Version: "43"`:
+```
+ghcr.io/tmichett/fedora-remix-builder:43
+```
+
+Simply update `Fedora_Version` in `config.yml` to switch container versions. All scripts automatically use the correct container image.
 
 ## Troubleshooting
 
