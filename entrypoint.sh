@@ -12,10 +12,34 @@ export LANGUAGE=en_US.UTF-8
 # Log all output to a file for later viewing
 exec > >(tee -a /tmp/entrypoint.log) 2>&1
 
+# Configure DNF for faster downloads
+echo "Configuring DNF for optimal download performance..."
+if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf 2>/dev/null; then
+    echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf
+fi
+if ! grep -q "fastestmirror" /etc/dnf/dnf.conf 2>/dev/null; then
+    echo "fastestmirror=True" >> /etc/dnf/dnf.conf
+fi
+echo "DNF configured: max_parallel_downloads=10, fastestmirror=True"
+
 # Get the kickstart selection from environment variable (default to FedoraRemix)
+# Debug: Show all REMIX-related environment variables
+echo "DEBUG: Checking for REMIX_KICKSTART..."
+echo "DEBUG: REMIX_KICKSTART from env = '${REMIX_KICKSTART}'"
+env | grep -i remix || echo "DEBUG: No REMIX variables in environment"
+
+# Also check if it was passed via a file (fallback for systemd mode)
+if [ -z "$REMIX_KICKSTART" ] && [ -f /tmp/remix_kickstart.txt ]; then
+    REMIX_KICKSTART=$(cat /tmp/remix_kickstart.txt)
+    echo "DEBUG: Read REMIX_KICKSTART from file: ${REMIX_KICKSTART}"
+fi
+
 REMIX_KICKSTART="${REMIX_KICKSTART:-FedoraRemix}"
 echo "Selected Kickstart: ${REMIX_KICKSTART}"
 echo "Output ISO will be: ${REMIX_KICKSTART}.iso"
+
+# Write to file for the build script to read (backup method)
+echo "$REMIX_KICKSTART" > /tmp/remix_kickstart.txt
 
 # Wait for workspace directory to be available (mounts may not be ready immediately)
 echo "Waiting for workspace directory to be available..."
