@@ -12,6 +12,11 @@ export LANGUAGE=en_US.UTF-8
 # Log all output to a file for later viewing
 exec > >(tee -a /tmp/entrypoint.log) 2>&1
 
+# Get the kickstart selection from environment variable (default to FedoraRemix)
+REMIX_KICKSTART="${REMIX_KICKSTART:-FedoraRemix}"
+echo "Selected Kickstart: ${REMIX_KICKSTART}"
+echo "Output ISO will be: ${REMIX_KICKSTART}.iso"
+
 # Wait for workspace directory to be available (mounts may not be ready immediately)
 echo "Waiting for workspace directory to be available..."
 for i in {1..30}; do
@@ -61,7 +66,9 @@ if [ ! -f "Enhanced_Remix_Build_Script.sh" ]; then
     exit 1
 fi
 
-echo "Running: Enhanced_Remix_Build_Script.sh"
+echo "Running: Enhanced_Remix_Build_Script.sh with kickstart: ${REMIX_KICKSTART}"
+# Export the kickstart selection for the build script
+export REMIX_KICKSTART
 ./Enhanced_Remix_Build_Script.sh
 
 # Build completed - Show prominent success message
@@ -75,7 +82,7 @@ echo -e "\033[1;36m║\033[0m \033[1;33mIMPORTANT: Container Control Instruction
 echo -e "\033[1;36m╠══════════════════════════════════════════════════════════════════════════════╣\033[0m"
 echo -e "\033[1;36m║\033[0m                                                                              \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m  \033[1;37m📋 Your Fedora Remix ISO is ready!\033[0m                                          \033[1;36m║\033[0m"
-echo -e "\033[1;36m║\033[0m  \033[0;32m   Location: /livecd-creator/FedoraRemix/FedoraRemix.iso\033[0m                   \033[1;36m║\033[0m"
+echo -e "\033[1;36m║\033[0m  \033[0;32m   Location: /livecd-creator/FedoraRemix/${REMIX_KICKSTART}.iso\033[0m             \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m                                                                              \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m  \033[1;33m⚠️  To exit this container:\033[0m                                                \033[1;36m║\033[0m"
 echo -e "\033[1;36m║\033[0m     \033[1;37m➜ Type:\033[0m \033[1;32mexit\033[0m or \033[1;32mpoweroff\033[0m                                               \033[1;36m║\033[0m"
