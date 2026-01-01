@@ -12,17 +12,20 @@ fi
 
 # Extract values from config.yml
 FEDORA_VERSION=$(grep -A 10 "Container_Properties:" config.yml | grep "Fedora_Version:" | awk '{print $2}' | tr -d '"')
-IMAGE_NAME=$(grep -A 10 "Container_Properties:" config.yml | grep "Image_Name:" | awk '{print $2}' | tr -d '"')
+GITHUB_REGISTRY_OWNER=$(grep -A 10 "Container_Properties:" config.yml | grep "GitHub_Registry_Owner:" | awk '{print $2}' | tr -d '"')
 
 if [ -z "$FEDORA_VERSION" ]; then
     echo "Error: Could not extract Fedora_Version from config.yml"
     exit 1
 fi
 
-if [ -z "$IMAGE_NAME" ]; then
-    echo "Error: Could not extract Image_Name from config.yml"
+if [ -z "$GITHUB_REGISTRY_OWNER" ]; then
+    echo "Error: Could not extract GitHub_Registry_Owner from config.yml"
     exit 1
 fi
+
+# Construct Image_Name dynamically from GitHub_Registry_Owner and Fedora_Version
+IMAGE_NAME="ghcr.io/${GITHUB_REGISTRY_OWNER}/fedora-remix-builder:${FEDORA_VERSION}"
 
 echo "Building container with Fedora version: $FEDORA_VERSION"
 echo "Image name: $IMAGE_NAME"
