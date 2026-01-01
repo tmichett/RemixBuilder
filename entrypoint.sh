@@ -22,6 +22,10 @@ if ! grep -q "fastestmirror" /etc/dnf/dnf.conf 2>/dev/null; then
 fi
 echo "DNF configured: max_parallel_downloads=10, fastestmirror=True"
 
+# Clean DNF cache to ensure fresh repo metadata
+echo "Cleaning DNF cache to ensure fresh repository metadata..."
+dnf clean all 2>/dev/null || true
+
 # Get the kickstart selection from environment variable (default to FedoraRemix)
 # Debug: Show all REMIX-related environment variables
 echo "DEBUG: Checking for REMIX_KICKSTART..."
