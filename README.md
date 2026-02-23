@@ -2,6 +2,9 @@
 
 A containerized build environment for creating Fedora Remix ISO images. This project provides a Podman-based container that automates the Fedora Remix build process.
 
+> **Latest Updates:** See [CHANGELOG.md](CHANGELOG.md) for recent fixes and improvements.  
+> **Build Date:** Container last updated February 22, 2026
+
 ## Quick Start
 
 ### Prerequisites
@@ -264,13 +267,28 @@ Simply update `Fedora_Version` in `config.yml` to switch container versions. All
 ## Troubleshooting
 
 ### Container won't start
+
+**SELinux permission denied error (Fixed Feb 22, 2026):**
+```
+/entrypoint.sh: line 42: /tmp/remix_kickstart.txt: Permission denied
+```
+
+This has been **FIXED** in the latest version (container rebuild required):
+- Updated `entrypoint.sh` with graceful error handling
+- Updated `Build_Remix.sh` to remove SELinux-problematic bind mount
+- Container now creates files in its own tmpfs
+- See [CHANGELOG.md](CHANGELOG.md) for details
+
+**Solution:** Rebuild the container with `./build.sh` or pull the latest image.
+
+**Other container start issues:**
 - Verify Podman is installed and running
 - Check that the `Image_Name` in `config.yml` matches a built image
 - Ensure the Fedora Remix location exists and is accessible
 
 ### Build fails in container
 
-**Linux-specific `/sys` unmount errors**: If you see errors like:
+**Linux-specific `/sys` unmount errors (Fixed Nov 22, 2025):**
 ```
 Error creating Live CD : Unable to unmount filesystem at /var/tmp/imgcreate-*/install_root/sys
 ```

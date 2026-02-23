@@ -42,8 +42,11 @@ REMIX_KICKSTART="${REMIX_KICKSTART:-FedoraRemix}"
 echo "Selected Kickstart: ${REMIX_KICKSTART}"
 echo "Output ISO will be: ${REMIX_KICKSTART}.iso"
 
-# Write to file for the build script to read (backup method)
-echo "$REMIX_KICKSTART" > /tmp/remix_kickstart.txt
+# Write to file for the build script to read (creates file in container's tmpfs)
+# This avoids SELinux issues with bind-mounted files
+echo "$REMIX_KICKSTART" > /tmp/remix_kickstart.txt 2>/dev/null || {
+    echo "Warning: Could not write to /tmp/remix_kickstart.txt (using env var only)"
+}
 
 # Wait for workspace directory to be available (mounts may not be ready immediately)
 echo "Waiting for workspace directory to be available..."
