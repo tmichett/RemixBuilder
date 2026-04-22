@@ -12,6 +12,10 @@ export LANGUAGE=en_US.UTF-8
 # Log all output to a file for later viewing
 exec > >(tee -a /tmp/entrypoint.log) 2>&1
 
+# remix-builder.service logs to the journal (not the container TTY) to avoid fighting
+# console-getty; use:  tail -f /tmp/entrypoint.log  or  journalctl -u remix-builder.service -f
+echo "Build output: tail -f /tmp/entrypoint.log  (and: journalctl -u remix-builder.service -f)"
+
 # Configure DNF for faster downloads
 echo "Configuring DNF for optimal download performance..."
 if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf 2>/dev/null; then

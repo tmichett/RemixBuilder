@@ -72,17 +72,16 @@ RUN mkdir -p /etc/systemd/system/console-getty.service.d && \
 # This is necessary for the entrypoint to run with systemd as PID 1
 RUN echo '[Unit]' > /etc/systemd/system/remix-builder.service && \
     echo 'Description=Run Remix Builder Entrypoint' >> /etc/systemd/system/remix-builder.service && \
-    echo 'After=local-fs.target loop-devices.service console-getty.service' >> /etc/systemd/system/remix-builder.service && \
+    echo 'After=local-fs.target loop-devices.service systemd-journald.socket' >> /etc/systemd/system/remix-builder.service && \
     echo 'Requires=local-fs.target loop-devices.service' >> /etc/systemd/system/remix-builder.service && \
     echo '' >> /etc/systemd/system/remix-builder.service && \
     echo '[Service]' >> /etc/systemd/system/remix-builder.service && \
     echo 'Type=oneshot' >> /etc/systemd/system/remix-builder.service && \
     echo 'ExecStart=/entrypoint.sh' >> /etc/systemd/system/remix-builder.service && \
     echo 'RemainAfterExit=yes' >> /etc/systemd/system/remix-builder.service && \
-    echo 'StandardOutput=journal+console' >> /etc/systemd/system/remix-builder.service && \
-    echo 'StandardError=journal+console' >> /etc/systemd/system/remix-builder.service && \
+    echo 'StandardOutput=journal' >> /etc/systemd/system/remix-builder.service && \
+    echo 'StandardError=journal' >> /etc/systemd/system/remix-builder.service && \
     echo 'StandardInput=null' >> /etc/systemd/system/remix-builder.service && \
-    echo 'TTYPath=/dev/console' >> /etc/systemd/system/remix-builder.service && \
     echo '' >> /etc/systemd/system/remix-builder.service && \
     echo '[Install]' >> /etc/systemd/system/remix-builder.service && \
     echo 'WantedBy=multi-user.target' >> /etc/systemd/system/remix-builder.service
