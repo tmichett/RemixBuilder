@@ -79,8 +79,10 @@ RUN echo '[Unit]' > /etc/systemd/system/remix-builder.service && \
     echo 'Type=oneshot' >> /etc/systemd/system/remix-builder.service && \
     echo 'ExecStart=/entrypoint.sh' >> /etc/systemd/system/remix-builder.service && \
     echo 'RemainAfterExit=yes' >> /etc/systemd/system/remix-builder.service && \
-    echo 'StandardOutput=journal' >> /etc/systemd/system/remix-builder.service && \
-    echo 'StandardError=journal' >> /etc/systemd/system/remix-builder.service && \
+    echo '# journal+console: show build in the same window as podman run -it' >> /etc/systemd/system/remix-builder.service && \
+    echo '# Do not set TTYPath=; that can fight console-getty for the same VT' >> /etc/systemd/system/remix-builder.service && \
+    echo 'StandardOutput=journal+console' >> /etc/systemd/system/remix-builder.service && \
+    echo 'StandardError=journal+console' >> /etc/systemd/system/remix-builder.service && \
     echo 'StandardInput=null' >> /etc/systemd/system/remix-builder.service && \
     echo '' >> /etc/systemd/system/remix-builder.service && \
     echo '[Install]' >> /etc/systemd/system/remix-builder.service && \

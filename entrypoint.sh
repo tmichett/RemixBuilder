@@ -1,6 +1,21 @@
 #!/bin/bash
 set -e
 
+# For Build_Remix.sh: write ok / failed:N so the host can stop tailing without a second console
+ENTRYPOINT_STATUS_FILE=/tmp/entrypoint-status
+ENTRYPOINT_SUCCESS=''
+on_exit() {
+  local st=$?
+  if [ -n "$ENTRYPOINT_SUCCESS" ]; then
+    echo "ok" > "$ENTRYPOINT_STATUS_FILE"
+    # Touch after status so a host "follow" loop never sees completed but not status yet
+    touch /tmp/entrypoint-completed
+  else
+    echo "failed:${st}" > "$ENTRYPOINT_STATUS_FILE"
+  fi
+}
+trap on_exit EXIT
+
 # Ensure unbuffered output so it appears immediately
 export PYTHONUNBUFFERED=1
 
@@ -12,9 +27,8 @@ export LANGUAGE=en_US.UTF-8
 # Log all output to a file for later viewing
 exec > >(tee -a /tmp/entrypoint.log) 2>&1
 
-# remix-builder.service logs to the journal (not the container TTY) to avoid fighting
-# console-getty; use:  tail -f /tmp/entrypoint.log  or  journalctl -u remix-builder.service -f
-echo "Build output: tail -f /tmp/entrypoint.log  (and: journalctl -u remix-builder.service -f)"
+# Build also goes to /dev/console (same window as podman run -it) via journal+console
+echo "Build output: this stream + /tmp/entrypoint.log  |  journalctl -u remix-builder.service -f"
 
 # Configure DNF for faster downloads
 echo "Configuring DNF for optimal download performance..."
@@ -128,6 +142,6 @@ echo -e "\033[1;36m║\033[0m                                                   
 echo -e "\033[1;36m╚══════════════════════════════════════════════════════════════════════════════╝\033[0m"
 echo ""
 
-# Mark as completed
-touch /tmp/entrypoint-completed
+# EXIT trap will write /tmp/entrypoint-status and touch /tmp/entrypoint-completed
+ENTRYPOINT_SUCCESS=1
 
