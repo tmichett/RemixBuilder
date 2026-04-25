@@ -288,6 +288,16 @@ This has been **FIXED** in the latest version (container rebuild required):
 
 ### Build fails in container
 
+**SELinux relabel failure — `setfiles` EINVAL on osbuild files:**
+```
+setfiles: Could not set context for /usr/lib/osbuild/...:  Invalid argument
+Error creating Live CD : SELinux relabel failed.
+```
+
+This has been **FIXED** in the latest version (container rebuild required). See [SELINUX_RELABEL_FIX.md](SELINUX_RELABEL_FIX.md) for the full root-cause analysis and fix details.
+
+**Solution:** Rebuild the container with `./build.sh` after pulling the latest changes.
+
 **Linux-specific `/sys` unmount errors (Fixed Nov 22, 2025):**
 ```
 Error creating Live CD : Unable to unmount filesystem at /var/tmp/imgcreate-*/install_root/sys

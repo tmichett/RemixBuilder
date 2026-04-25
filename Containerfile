@@ -5,6 +5,9 @@ ARG FEDORA_VERSION=39
 FROM fedora:${FEDORA_VERSION}
 
 # Install required RPMs including systemd and locale support
+# osbuild-selinux is required so its .pp module file is present in the image;
+# entrypoint.sh loads it into the running kernel before livecd-creator runs setfiles,
+# preventing EINVAL "SELinux relabel failed" when the chroot contains osbuild packages.
 RUN dnf install -y \
     python3-pyyaml \
     httpd \
@@ -15,6 +18,7 @@ RUN dnf install -y \
     python3 \
     systemd \
     glibc-langpack-en \
+    osbuild-selinux \
     && dnf clean all
 
 # Configure locale
