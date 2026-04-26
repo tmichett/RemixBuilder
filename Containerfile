@@ -83,6 +83,10 @@ RUN echo '[Unit]' > /etc/systemd/system/remix-builder.service && \
     echo 'Type=oneshot' >> /etc/systemd/system/remix-builder.service && \
     echo 'ExecStart=/entrypoint.sh' >> /etc/systemd/system/remix-builder.service && \
     echo 'RemainAfterExit=yes' >> /etc/systemd/system/remix-builder.service && \
+    echo '# Pass REMIX_KICKSTART from podman run -e into the service environment.' >> /etc/systemd/system/remix-builder.service && \
+    echo '# systemd services do not inherit parent environment by default; without' >> /etc/systemd/system/remix-builder.service && \
+    echo '# PassEnvironment the kickstart selection is lost and build defaults to FedoraRemix.' >> /etc/systemd/system/remix-builder.service && \
+    echo 'PassEnvironment=REMIX_KICKSTART' >> /etc/systemd/system/remix-builder.service && \
     echo '# journal+console: show build in the same window as podman run -it' >> /etc/systemd/system/remix-builder.service && \
     echo '# Do not set TTYPath=; that can fight console-getty for the same VT' >> /etc/systemd/system/remix-builder.service && \
     echo 'StandardOutput=journal+console' >> /etc/systemd/system/remix-builder.service && \
