@@ -99,6 +99,18 @@ if [ ! -f "Prepare_Fedora_Remix_Build.py" ]; then
     exit 1
 fi
 
+# Load SELinux policy modules into the running kernel before livecd-creator runs.
+# The chroot being built installs packages like osbuild whose file_contexts reference
+# types (e.g. osbuild_exec_t) absent from the container's inherited host kernel policy.
+# When livecd-creator calls setfiles to relabel the chroot, the kernel returns EINVAL
+# for those contexts and the build aborts with "SELinux relabel failed."
+# Loading the .pp modules here ensures the kernel recognizes those types before setfiles runs.
+echo "Loading SELinux policy modules for chroot relabeling..."
+for pp_file in /usr/share/selinux/packages/*.pp; do
+    [ -f "$pp_file" ] && semodule -i "$pp_file" 2>/dev/null && echo "  Loaded: $(basename "$pp_file")" || true
+done
+echo "SELinux policy modules loaded."
+
 # Run commands with echo output
 echo "Running: python3 Prepare_Web_Files.py"
 python3 Prepare_Web_Files.py
