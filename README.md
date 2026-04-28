@@ -43,6 +43,8 @@ A containerized build environment for creating Fedora Remix ISO images. This pro
    - Ensure the `Fedora_Version` in `config.yml` matches the Fedora version specified in your Fedora Remix project's `/Setup/config.yml`
    - This ensures you're building with the correct container image and Fedora version
 
+**Aligning configs in the Fedora_Remix repo:** If you clone [Fedora_Remix](https://github.com/tmichett/Fedora_Remix), run **`./Update_Remix_Config.sh`** from **that repository’s root** after copying in `config.yml`. The script sets **`Fedora_Version`** (root `config.yml`), **`fedora_version`**, and **`include_pxeboot_files`** (`Setup/config.yml`) together so you do not have to edit both YAML files by hand. Then keep **RemixBuilder**’s `Fedora_Version` in sync when you build or push the builder image.
+
 ### Building the Container
 
 From the RemixBuilder directory (or wherever you have the build scripts):
