@@ -66,11 +66,11 @@ RUN chmod +x /entrypoint.sh
 RUN rm -f /etc/systemd/system/default.target && \
     ln -s /usr/lib/systemd/system/multi-user.target /etc/systemd/system/default.target
 
-# Configure auto-login for root on console-getty (used in containers)
-RUN mkdir -p /etc/systemd/system/console-getty.service.d && \
-    echo '[Service]' > /etc/systemd/system/console-getty.service.d/autologin.conf && \
-    echo 'ExecStart=' >> /etc/systemd/system/console-getty.service.d/autologin.conf && \
-    echo 'ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud console 115200,38400,9600 $TERM' >> /etc/systemd/system/console-getty.service.d/autologin.conf
+# Do not run agetty on /dev/console. With `podman run --privileged` the container can
+# share the host's real console; console-getty then exits and systemd respawns it every
+# few seconds (audit SERVICE_STOP/SERVICE_START), which flashes GNOME/Wayland on the host.
+# Build output still goes to the same terminal via remix-builder.service (journal+console).
+RUN ln -sf /dev/null /etc/systemd/system/console-getty.service
 
 # Create minimal systemd service to run entrypoint.sh automatically
 # This is necessary for the entrypoint to run with systemd as PID 1
