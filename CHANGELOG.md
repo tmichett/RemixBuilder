@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Fixed
+- **2026-04-28**: Host display flashing during Linux container build
+  - Masked `console-getty.service` in the image instead of configuring autologin on `/dev/console`
+  - Under `--privileged`, a failing/restarting console getty was causing rapid SERVICE_START/STOP on the host and screen flicker; build logs are unchanged (`remix-builder.service` still uses `journal+console`)
+  - Files changed: `Containerfile`
+
 - **2026-02-22**: SELinux permission denied error in entrypoint.sh
   - Added error handling for `/tmp/remix_kickstart.txt` write operations
   - Gracefully falls back to environment variable if file write fails
