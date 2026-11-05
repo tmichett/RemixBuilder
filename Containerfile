@@ -1,7 +1,7 @@
 # Containerfile for Fedora Remix Builder
 # Accepts FEDORA_VERSION as build argument
 
-ARG FEDORA_VERSION=39
+ARG FEDORA_VERSION=45
 FROM fedora:${FEDORA_VERSION}
 
 # Install required RPMs including systemd and locale support
