@@ -268,6 +268,10 @@ Simply update `Fedora_Version` in `config.yml` to switch container versions. All
 
 ## Troubleshooting
 
+### Live ISO build fails with `NOKEY` on Fedora 45
+
+That failure is in the install root created by `livecd-creator`, not in this image's RPM database. The remix repo imports the keys at build time (`Fedora_Remix/Setup/files/Fixes/import_installroot_keys.py`). Rebuilding this container does not fix it. See `Fedora_Remix/Notes/Fedora45_GPG_Key_Import.md`.
+
 ### Container won't start
 
 **SELinux permission denied error (Fixed Feb 22, 2026):**
